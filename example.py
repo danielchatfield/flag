@@ -7,5 +7,5 @@ workers = flag.int("workers", 4, "The number of workers")
 if __name__ == '__main__':
     flag.parse()
 
-    print env.upper() + "yes"
-    print workers + 3
+    print(env.upper())
+    print (workers + 3)
