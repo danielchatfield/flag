@@ -25,5 +25,4 @@ Usage
 
     if __name__ == '__main__':
         flag.parse()
-
-    print("Num workers %d" % num_workers)
+        print("Num workers %d" % num_workers)
