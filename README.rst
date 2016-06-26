@@ -17,6 +17,7 @@ Usage
 -----
 
 .. code-block:: python
+
     import flag
 
     num_workers = flag.int("workers", 10, "Number of worker threads")
