@@ -26,4 +26,3 @@ Usage
         flag.parse()
 
     print("Num workers %d" % num_workers)
-```
