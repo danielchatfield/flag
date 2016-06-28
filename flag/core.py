@@ -10,19 +10,19 @@ from . import registry
 class Flag(object):
     type = None
 
-    def __init__(self, name, default, help):
+    def __init__(self, name, default=None, help=None, required=False):
         self.parsed = False
         self.name = name
         self.default = default
         self.help = help
         self.value = None
-        self.required = False
+        self.required = required
 
     def val(self):
         if not self.parsed:
             raise Exception("Cannot read flag before parsing")
 
-        if self.value:
+        if self.value is not None:
             return self.value
         else:
             return self.default
@@ -37,6 +37,17 @@ class Flag(object):
         parser.add_argument(
             name, default=self.default, help=self.help,
             type=self.type, required=self.required)
+
+
+class BaseMethods(object):
+    def __getattr__(self, attr):
+        val = self.type(self.val())
+        if hasattr(val, attr):
+            return getattr(val, attr)
+        raise AttributeError(attr)
+
+    def __hash__(self):
+        return self.val().__hash__()
 
 
 class ComparisonOperators(object):
@@ -73,41 +84,19 @@ class ArithmeticOperators(object):
         return other * self.type(self)
 
 
-class IntFlag(Flag, ComparisonOperators, ArithmeticOperators):
+class IntFlag(Flag, ComparisonOperators, ArithmeticOperators, BaseMethods):
     """ IntFlag is a flag that tries to behave like an int"""
     type = int
 
     def __str__(self):
         return self.val().__str__()
 
-    def __init__(self, *args, **kwargs):
-        Flag.__init__(self, *args, **kwargs)
 
-    def __getattr__(self, attr):
-        """
-        Forwards any non-magic methods to the resulting int's class.
-        """
-        val = self.type(self.val())
-        if hasattr(val, attr):
-            return getattr(val, attr)
-        raise AttributeError(attr)
-
-
-class StringFlag(Flag, ComparisonOperators, ArithmeticOperators):
+class StringFlag(Flag, ComparisonOperators, ArithmeticOperators, BaseMethods):
     """ StringFlag is a flag that tries to behave like a string"""
 
     def __str__(self):
         return self.val()
-
-    def __getattr__(self, attr):
-        """
-        Forwards any non-magic methods to the resulting string's class. This
-        allows support for string methods like `upper()`, `lower()`, etc.
-        """
-        string = self.type(self)
-        if hasattr(string, attr):
-            return getattr(string, attr)
-        raise AttributeError(attr)
 
     def __len__(self):
         return len(self.type(self))
@@ -126,13 +115,13 @@ class StringFlag(Flag, ComparisonOperators, ArithmeticOperators):
         return text_type
 
 
-def int(name, default, help):
-    flag = IntFlag(name, default, help)
+def int(name, *args, **kwargs):
+    flag = IntFlag(name, *args, **kwargs)
     registry.add(flag)
     return flag
 
 
-def string(name, default, help):
-    flag = StringFlag(name, default, help)
+def string(name, *args, **kwargs):
+    flag = StringFlag(name, *args, **kwargs)
     registry.add(flag)
     return flag
